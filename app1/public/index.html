@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wrexer Demo App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="glass-container">
+        <header>
+            <div class="logo">Wrexer<span>.demo</span></div>
+            <nav>
+                <div class="status-badge"><span class="dot"></span> System Live</div>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <h1>Modern Deployment <span>Redefined</span></h1>
+                <p>This is a live demo of a containerized Node.js application deployed via the Wrexer platform.</p>
+                <div class="cta-group">
+                    <button class="primary-btn" id="refreshStatus">Check Sync Status</button>
+                    <a href="https://wrexer.com" class="secondary-btn">Visit Wrexer</a>
+                </div>
+            </section>
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <span class="label">Environment</span>
+                    <span class="value" id="envValue">Docker</span>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Version</span>
+                    <span class="value" id="versionValue">1.0.0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Uptime</span>
+                    <span class="value" id="uptimeValue">99.9%</span>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Wrexer. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('refreshStatus').addEventListener('click', async () => {
+            const btn = document.getElementById('refreshStatus');
+            btn.textContent = 'Checking...';
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                console.log('Status:', data);
+                setTimeout(() => {
+                    btn.textContent = 'Sync Success!';
+                    setTimeout(() => { btn.textContent = 'Check Sync Status'; }, 2000);
+                }, 1000);
+            } catch (err) {
+                btn.textContent = 'Check Failed';
+            }
+        });
+    </script>
+</body>
+</html>
