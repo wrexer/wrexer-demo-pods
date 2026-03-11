@@ -1,0 +1,14 @@
+{
+    "name": "app3",
+    "version": "1.0.0",
+    "description": "Wrexer Certificate Verification & Management Service",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^5.2.1",
+        "pg": "^8.11.3",
+        "dotenv": "^16.3.1"
+    }
+}

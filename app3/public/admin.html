@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin – Wrexer CertCheck</title>
+    <meta name="description" content="Admin interface for managing Wrexer bootcamp certificates." />
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0c10;
+            --surface: #111318;
+            --surface2: #1a1d26;
+            --surface3: #20232e;
+            --border: #252830;
+            --accent: #6c63ff;
+            --accent-light: #8b84ff;
+            --accent-glow: rgba(108, 99, 255, 0.18);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.08);
+            --success: #22c55e;
+            --text: #e8eaf0;
+            --text-muted: #7c8096;
+            --text-dim: #4a4e62;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ---- Login Screen ---- */
+        #loginScreen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        #loginScreen::before {
+            content: '';
+            position: fixed;
+            top: -40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70vw;
+            height: 70vw;
+            max-width: 600px;
+            background: radial-gradient(circle, rgba(108, 99, 255, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.25rem;
+            position: relative;
+        }
+
+        .login-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .login-brand .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .login-brand .brand-text strong {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .login-brand .brand-text span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .login-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .login-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ---- Shared Form Styles ---- */
+        label.form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            margin-bottom: 0.4rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            padding: 0.7rem 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        input::placeholder,
+        select option[value=""] {
+            color: var(--text-dim);
+        }
+
+        select {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 18px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-msg {
+            background: var(--danger-bg);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 8px;
+            color: var(--danger);
+            font-size: 0.8rem;
+            padding: 0.6rem 0.85rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        /* ---- Admin App Shell ---- */
+        #appShell {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(10, 12, 16, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            height: 58px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .topbar-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #fff;
+        }
+
+        .topbar-badge {
+            font-size: 0.7rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.15rem 0.5rem;
+            color: var(--text-muted);
+            margin-left: 0.25rem;
+        }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            padding: 0.4rem 0.9rem;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        /* ---- Main content ---- */
+        .main {
+            flex: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* ---- Create form section ---- */
+        .section-header {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.85rem;
+        }
+
+        .create-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .create-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0 1rem;
+        }
+
+        .create-grid .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .create-grid input,
+        .create-grid select {
+            margin-bottom: 0;
+        }
+
+        .create-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+            gap: 0.6rem;
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            color: #fff;
+            border: none;
+            border-radius: 9px;
+            padding: 0.65rem 1.4rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            box-shadow: 0 4px 16px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-create:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+
+        .btn-create:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .create-msg {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.85rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .create-msg.success {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .create-msg.error-msg {
+            display: block;
+        }
+
+        /* ---- Certificate table ---- */
+        .certs-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .certs-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .certs-card-header .section-header {
+            margin-bottom: 0;
+        }
+
+        #certCount {
+            font-size: 0.75rem;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 0.15rem 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            padding: 0.65rem 1.25rem;
+            text-align: left;
+            background: var(--surface2);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(37, 40, 48, 0.5);
+            transition: background 0.15s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: var(--surface2);
+        }
+
+        tbody td {
+            padding: 0.85rem 1.25rem;
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+
+        .cert-id-tag {
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+
+        .verify-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-top: 0.2rem;
+            transition: color 0.15s;
+        }
+
+        .verify-link:hover {
+            color: var(--accent-light);
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 7px;
+            color: var(--danger);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            padding: 0.35rem 0.75rem;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger-bg);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .empty-state {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.875rem;
+        }
+
+        .loading-row td {
+            text-align: center;
+            color: var(--text-dim);
+            padding: 2rem !important;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 680px) {
+            .create-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===================== LOGIN ===================== -->
+    <div id="loginScreen">
+        <div class="login-card">
+            <div class="login-brand">
+                <img src="/favicon.png" class="logo" alt="WX">
+                <div class="brand-text">
+                    <strong>Wrexer</strong>
+                    <span>CertCheck Admin</span>
+                </div>
+            </div>
+            <h1 class="login-title">Admin Login</h1>
+            <p class="login-sub">Enter your admin password to manage certificates.</p>
+            <div id="loginError" class="error-msg"></div>
+            <form onsubmit="handleLogin(event)">
+                <label class="form-label">Password</label>
+                <input type="password" id="passwordInput" placeholder="Admin password" />
+                <button type="submit" class="btn-primary" id="loginBtn">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== APP SHELL ===================== -->
+    <div id="appShell">
+        <nav class="topbar">
+            <div class="topbar-brand">
+                <img src="/favicon.png" class="topbar-logo" alt="WX">
+                Wrexer CertCheck
+                <span class="topbar-badge">Admin</span>
+            </div>
+            <button class="btn-logout" onclick="logout()">Sign Out</button>
+        </nav>
+
+        <div class="main">
+            <!-- Create Certificate -->
+            <div>
+                <p class="section-header">Issue New Certificate</p>
+                <div class="create-card">
+                    <div id="createMsg" class="create-msg"></div>
+                    <div class="create-grid">
+                        <div class="form-group">
+                            <label class="form-label">Recipient Name</label>
+                            <input type="text" id="newName" placeholder="Full name" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="newEmail" placeholder="email@example.com" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Program / Bootcamp</label>
+                            <input type="text" id="newProgram" placeholder="e.g. Bootcamp, Full Stack…" />
+                        </div>
+                    </div>
+                    <div class="create-actions">
+                        <button class="btn-create" id="createBtn" onclick="handleCreate()">Issue Certificate →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Certificate List -->
+            <div>
+                <div class="certs-card">
+                    <div class="certs-card-header">
+                        <p class="section-header">All Certificates</p>
+                        <span id="certCount">—</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table id="certsTable">
+                            <thead>
+                                <tr>
+                                    <th>Certificate ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Program</th>
+                                    <th>Issued</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="certsBody">
+                                <tr class="loading-row">
+                                    <td colspan="6">Loading certificates…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+
+        function getToken() {
+            return localStorage.getItem('wrexr_admin_token');
+        }
+
+        function setToken(t) {
+            localStorage.setItem('wrexr_admin_token', t);
+            authToken = t;
+        }
+
+        function clearToken() {
+            localStorage.removeItem('wrexr_admin_token');
+            authToken = null;
+        }
+
+        function headers() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
+            };
+        }
+
+        function showAdmin() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appShell').style.display = 'flex';
+            loadCertificates();
+        }
+
+        function logout() {
+            clearToken();
+            document.getElementById('appShell').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('passwordInput').value = '';
+        }
+
+        // ---- Login ----
+        async function handleLogin(e) {
+            e.preventDefault();
+            const password = document.getElementById('passwordInput').value;
+            const errEl = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
+
+            errEl.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Signing in…';
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errEl.textContent = data.error || 'Invalid password.';
+                    errEl.style.display = 'block';
+                } else {
+                    setToken(data.token);
+                    showAdmin();
+                }
+            } catch {
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        }
+
+        // ---- Load certificates ----
+        async function loadCertificates() {
+            const tbody = document.getElementById('certsBody');
+            tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Loading certificates…</td></tr>';
+            try {
+                const res = await fetch('/api/admin/certificates', { headers: headers() });
+                if (res.status === 401 || res.status === 403) { logout(); return; }
+                const certs = await res.json();
+                renderCerts(certs);
+            } catch {
+                tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Failed to load certificates.</td></tr>';
+            }
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function renderCerts(certs) {
+            const tbody = document.getElementById('certsBody');
+            const countEl = document.getElementById('certCount');
+            countEl.textContent = `${certs.length} certificate${certs.length !== 1 ? 's' : ''}`;
+
+            if (certs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">No certificates yet. Issue your first one above.</div></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = certs.map(c => `
+            <tr id="row-${escHtml(c.id)}">
+                <td>
+                    <div class="cert-id-tag">${escHtml(c.id)}</div>
+                    <a class="verify-link" href="/c/${encodeURIComponent(c.id)}" target="_blank">↗ Verify link</a>
+                </td>
+                <td>${escHtml(c.name)}</td>
+                <td style="color:var(--text-muted)">${escHtml(c.email)}</td>
+                <td>${escHtml(c.program)}</td>
+                <td style="color:var(--text-muted);white-space:nowrap">${formatDate(c.issued_at)}</td>
+                <td><button class="btn-delete" onclick="handleDelete('${escHtml(c.id)}')">Delete</button></td>
+            </tr>
+        `).join('');
+        }
+
+        // ---- Create certificate ----
+        async function handleCreate() {
+            const name = document.getElementById('newName').value.trim();
+            const email = document.getElementById('newEmail').value.trim();
+            const program = document.getElementById('newProgram').value.trim();
+            const msgEl = document.getElementById('createMsg');
+            const btn = document.getElementById('createBtn');
+
+            msgEl.style.display = 'none';
+            msgEl.className = 'create-msg';
+
+            if (!name || !email || !program) {
+                msgEl.textContent = 'Please fill in all fields.';
+                msgEl.classList.add('error-msg');
+                msgEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Issuing…';
+
+            try {
+                const res = await fetch('/api/admin/certificates', {
+                    method: 'POST',
+                    headers: headers(),
+                    body: JSON.stringify({ name, email, program })
+                });
+                if (res.status === 401 || res.status === 403) { logout(); return; }
+                const data = await res.json();
+                if (!res.ok) {
+                    msgEl.textContent = data.error || 'Failed to create certificate.';
+                    msgEl.classList.add('error-msg');
+                    msgEl.style.display = 'block';
+                } else {
+                    msgEl.textContent = `Certificate ${data.id} issued successfully!`;
+                    msgEl.classList.add('success');
+                    msgEl.style.display = 'block';
+                    document.getElementById('newName').value = '';
+                    document.getElementById('newEmail').value = '';
+                    document.getElementById('newProgram').value = '';
+                    loadCertificates();
+                    setTimeout(() => { msgEl.style.display = 'none'; }, 5000);
+                }
+            } catch {
+                msgEl.textContent = 'Network error. Please try again.';
+                msgEl.classList.add('error-msg');
+                msgEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Issue Certificate →';
+            }
+        }
+
+        // ---- Delete certificate ----
+        async function handleDelete(id) {
+            if (!confirm(`Delete certificate ${id}? This action cannot be undone.`)) return;
+            try {
+                const res = await fetch(`/api/admin/certificates/${encodeURIComponent(id)}`, {
+                    method: 'DELETE',
+                    headers: headers()
+                });
+                if (res.status === 401 || res.status === 403) { logout(); return; }
+                if (res.ok) {
+                    const row = document.getElementById(`row-${id}`);
+                    if (row) {
+                        row.style.opacity = '0';
+                        row.style.transition = 'opacity 0.3s';
+                        setTimeout(() => loadCertificates(), 350);
+                    }
+                }
+            } catch {
+                alert('Failed to delete certificate. Please try again.');
+            }
+        }
+
+        // ---- Auto-login if token exists ----
+        (function init() {
+            const t = getToken();
+            if (t) {
+                // Verify token is still valid
+                fetch('/api/admin/certificates', { headers: { 'Authorization': `Bearer ${t}` } })
+                    .then(r => {
+                        if (r.ok) { authToken = t; showAdmin(); }
+                        else logout();
+                    })
+                    .catch(() => { /* stay on login */ });
+            }
+        })();
+    </script>
+</body>
+
+</html>

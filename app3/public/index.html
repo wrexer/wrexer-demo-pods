@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Certificate Verification – Wrexer</title>
+    <meta name="description" content="Verify the authenticity of a Wrexer bootcamp certificate instantly by entering the certificate ID." />
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0a0c10;
+            --surface: #111318;
+            --surface2: #1a1d26;
+            --border: #252830;
+            --accent: #6c63ff;
+            --accent-light: #8b84ff;
+            --accent-glow: rgba(108, 99, 255, 0.18);
+            --success: #22c55e;
+            --success-bg: rgba(34, 197, 94, 0.08);
+            --error: #ef4444;
+            --error-bg: rgba(239, 68, 68, 0.08);
+            --text: #e8eaf0;
+            --text-muted: #7c8096;
+            --text-dim: #4a4e62;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        /* Background decoration */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80vw;
+            height: 80vw;
+            max-width: 700px;
+            max-height: 700px;
+            background: radial-gradient(circle, rgba(108, 99, 255, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 540px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Logo / Brand */
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+            letter-spacing: -0.5px;
+            box-shadow: 0 0 24px var(--accent-glow);
+        }
+
+        .brand-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: 0.02em;
+        }
+
+        .brand-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Card */
+        .card {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: box-shadow 0.3s;
+        }
+
+        .card:hover {
+            box-shadow: 0 0 40px rgba(108, 99, 255, 0.06);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            text-align: center;
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 1.75rem;
+        }
+
+        /* Form */
+        .input-row {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            padding: 0.75rem 1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="text"]::placeholder { color: var(--text-dim); }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        button.btn-primary {
+            background: linear-gradient(135deg, var(--accent), #a78bfa);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.4rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            white-space: nowrap;
+            box-shadow: 0 4px 18px rgba(108, 99, 255, 0.3);
+        }
+
+        button.btn-primary:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(108, 99, 255, 0.4);
+        }
+
+        button.btn-primary:active { transform: translateY(0); }
+
+        button.btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Result area */
+        #result { margin-top: 1.5rem; }
+
+        .result-hidden { display: none !important; }
+
+        /* Spinner */
+        .spinner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .spinner::before {
+            content: '';
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Not found */
+        .not-found {
+            background: var(--error-bg);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .not-found-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .not-found-text strong {
+            display: block;
+            color: var(--error);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .not-found-text span {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Certificate card */
+        .cert-card {
+            background: var(--success-bg);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .cert-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(34, 197, 94, 0.15);
+        }
+
+        .cert-badge {
+            width: 38px;
+            height: 38px;
+            background: rgba(34, 197, 94, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .cert-header-text strong {
+            display: block;
+            color: var(--success);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .cert-header-text span {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .cert-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .cert-field label {
+            display: block;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .cert-field p {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .cert-field.full { grid-column: 1 / -1; }
+
+        .cert-id-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: var(--accent-light);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        /* Footer */
+        .footer {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        .footer a {
+            color: var(--accent-light);
+            text-decoration: none;
+        }
+
+        .footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 480px) {
+            .cert-fields { grid-template-columns: 1fr; }
+            .input-row { flex-direction: column; }
+            button.btn-primary { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="brand">
+            <img src="/favicon.png" class="brand-logo" alt="Wrexer Logo">
+            <div class="brand-name">Wrexer</div>
+            <div class="brand-sub">Certificate Verification</div>
+        </div>
+
+        <div class="card">
+            <h1 class="card-title">Verify Certificate</h1>
+            <p class="card-subtitle">Enter the certificate ID found on your Wrexer bootcamp certificate to verify its authenticity.</p>
+
+            <form id="verifyForm" onsubmit="handleVerify(event)">
+                <div class="input-row">
+                    <input
+                        type="text"
+                        id="certInput"
+                        placeholder="e.g. WRX-BC-2026-001"
+                        autocomplete="off"
+                        spellcheck="false"
+                    />
+                    <button type="submit" class="btn-primary" id="verifyBtn">Verify</button>
+                </div>
+            </form>
+
+            <div id="result" class="result-hidden"></div>
+        </div>
+
+        <p class="footer">
+            Issued by <a href="https://wrexer.com" target="_blank" rel="noopener">wrexer.com</a> &mdash; Bootcamp Certificates
+        </p>
+    </div>
+
+    <script>
+        const resultEl = document.getElementById('result');
+        const inputEl  = document.getElementById('certInput');
+        const btn      = document.getElementById('verifyBtn');
+
+        function showSpinner() {
+            resultEl.className = '';
+            resultEl.innerHTML = '<div class="spinner">Verifying certificate…</div>';
+        }
+
+        function showNotFound() {
+            resultEl.className = '';
+            resultEl.innerHTML = `
+                <div class="not-found">
+                    <div class="not-found-icon">✗</div>
+                    <div class="not-found-text">
+                        <strong>Certificate Not Found</strong>
+                        <span>This certificate ID is not valid or does not exist in our records.</span>
+                    </div>
+                </div>`;
+        }
+
+        function formatDate(dateStr) {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function showCertificate(cert) {
+            resultEl.className = '';
+            resultEl.innerHTML = `
+                <div class="cert-card">
+                    <div class="cert-header">
+                        <div class="cert-badge">✓</div>
+                        <div class="cert-header-text">
+                            <strong>Certificate Verified</strong>
+                            <span>This certificate is authentic and recorded in our system.</span>
+                        </div>
+                    </div>
+                    <div class="cert-fields">
+                        <div class="cert-field">
+                            <label>Certificate Holder</label>
+                            <p>${escHtml(cert.name)}</p>
+                        </div>
+                        <div class="cert-field">
+                            <label>Program</label>
+                            <p>${escHtml(cert.program)}</p>
+                        </div>
+                        <div class="cert-field">
+                            <label>Issue Date</label>
+                            <p>${formatDate(cert.issued_at)}</p>
+                        </div>
+                        <div class="cert-field">
+                            <label>Certificate ID</label>
+                            <p class="cert-id-value">${escHtml(cert.id)}</p>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        async function verifyCert(id) {
+            btn.disabled = true;
+            showSpinner();
+            try {
+                const res = await fetch(`/api/verify/${encodeURIComponent(id.trim().toUpperCase())}`);
+                const data = await res.json();
+                if (data.found) {
+                    showCertificate(data.certificate);
+                } else {
+                    showNotFound();
+                }
+            } catch (e) {
+                resultEl.innerHTML = '<p style="color:var(--error);font-size:0.875rem;">Network error. Please try again.</p>';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function handleVerify(e) {
+            e.preventDefault();
+            const id = inputEl.value.trim();
+            if (!id) return;
+            verifyCert(id);
+        }
+
+        // Auto-verify if URL is /c/<id>
+        (() => {
+            const match = window.location.pathname.match(/^\/c\/([^/]+)/);
+            if (match) {
+                const id = decodeURIComponent(match[1]);
+                inputEl.value = id.toUpperCase();
+                verifyCert(id);
+            }
+        })();
+    </script>
+</body>
+</html>
